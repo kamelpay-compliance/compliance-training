@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KamelPay Compliance Academy — Admin</title>
+<style>
+:root{
+  --navy:#0b1f3a;--blue:#1a6fcf;--accent:#f59e0b;--green:#059669;--red:#dc2626;
+  --bg:#f0f4f8;--card:#ffffff;--text:#1a2535;--muted:#64748b;--border:#e2e8f0;
+  --shadow:0 2px 16px rgba(11,31,58,.09);--radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;font-size:15px}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#fff;border-radius:16px;padding:36px 32px;max-width:360px;width:100%;box-shadow:var(--shadow)}
+.login-card h1{color:var(--navy);font-size:1.2rem;margin-bottom:4px}
+.login-card p{color:var(--muted);font-size:.85rem;margin-bottom:18px}
+.login-card label{display:block;font-size:.78rem;font-weight:600;color:var(--navy);margin:12px 0 5px}
+.login-card input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:.9rem}
+.login-err{color:var(--red);font-size:.8rem;margin-top:10px;display:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:9px;border:none;cursor:pointer;font-size:.88rem;font-weight:600}
+.btn-primary{background:var(--blue);color:#fff;width:100%;margin-top:16px}
+.btn-ghost{background:transparent;color:var(--navy);border:1px solid var(--border)}
+
+/* DASHBOARD */
+.dash{display:none;max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+.dash.ready{display:block}
+.dash-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.dash-top h1{color:var(--navy);font-size:1.3rem}
+.dash-top .sub{color:var(--muted);font-size:.82rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:26px}
+.card{background:#fff;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.card .num{font-size:1.6rem;font-weight:800;color:var(--navy)}
+.card .lbl{font-size:.78rem;color:var(--muted);margin-top:2px}
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.toolbar input{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:.86rem}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+th,td{padding:11px 14px;text-align:left;font-size:.85rem;border-bottom:1px solid var(--border)}
+th{background:var(--navy);color:#fff;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;cursor:pointer}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:700}
+.badge-pass{background:#d1fae5;color:var(--green)}
+.badge-fail{background:#fee2e2;color:var(--red)}
+.empty{text-align:center;color:var(--muted);padding:40px;background:#fff;border-radius:var(--radius)}
+.section-title{font-size:.95rem;font-weight:700;color:var(--navy);margin:28px 0 10px}
+.small{font-size:.78rem;color:var(--muted)}
+.access-denied{text-align:center;padding:40px 20px}
+.access-denied h2{color:var(--red);margin-bottom:8px}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h1>Compliance Academy — Admin</h1>
+    <p>Enter your KamelPay email — we'll send you a one-time sign-in link.</p>
+    <div id="requestStep">
+      <label>Email</label>
+      <input id="loginEmail" type="email" placeholder="name@kamelpay.com">
+      <div class="login-err" id="loginErr"></div>
+      <button class="btn btn-primary" id="loginBtn">Send sign-in link</button>
+    </div>
+    <div id="sentStep" style="display:none;text-align:center">
+      <p style="color:var(--green);font-weight:600;margin-top:6px">✓ Link sent</p>
+      <p class="small" style="margin-top:6px">Check your inbox and open the link on this same device/browser to finish signing in.</p>
+    </div>
+  </div>
+</div>
+
+<div class="dash" id="dash">
+  <div class="dash-top">
+    <div>
+      <h1>Training Completion Dashboard</h1>
+      <div class="sub">AML, CFT &amp; Sanctions: The Essentials</div>
+    </div>
+    <button class="btn btn-ghost" id="logoutBtn">Sign out</button>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="num" id="statUsers">–</div><div class="lbl">Unique learners</div></div>
+    <div class="card"><div class="num" id="statPassed">–</div><div class="lbl">Passed (≥80%)</div></div>
+    <div class="card"><div class="num" id="statAttempts">–</div><div class="lbl">Total attempts</div></div>
+    <div class="card"><div class="num" id="statRate">–</div><div class="lbl">Pass rate</div></div>
+  </div>
+
+  <div class="section-title">Per-learner summary</div>
+  <div class="toolbar">
+    <input id="searchBox" placeholder="Search by name or email…">
+  </div>
+  <table id="summaryTable">
+    <thead><tr>
+      <th onclick="sortBy('name')">Name</th>
+      <th onclick="sortBy('email')">Email</th>
+      <th onclick="sortBy('attempts')">Attempts</th>
+      <th onclick="sortBy('best')">Best score</th>
+      <th onclick="sortBy('status')">Status</th>
+      <th onclick="sortBy('last')">Last attempt</th>
+    </tr></thead>
+    <tbody id="summaryBody"></tbody>
+  </table>
+  <div class="empty" id="emptyState" style="display:none">No attempts recorded yet.</div>
+
+  <div class="section-title">All attempts (raw log)</div>
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Score</th><th>Result</th><th>Date</th></tr></thead>
+    <tbody id="rawBody"></tbody>
+  </table>
+</div>
+
+<script>
+/* ========== FIREBASE CONFIG — use the SAME config as training.html ========== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBhQ4ff4n4EOeXpXfXmXT54_sXB3UDs5FU",
+  authDomain: "kamelpay-compliance-academy.firebaseapp.com",
+  projectId: "kamelpay-compliance-academy",
+  storageBucket: "kamelpay-compliance-academy.firebasestorage.app",
+  messagingSenderId: "643582289439",
+  appId: "1:643582289439:web:b5c51f46b3a640c7ba572a"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let allAttempts = [];
+let summaryRows = [];
+let sortState = {key:'last', dir:-1};
+
+/* Only these emails are allowed to view the dashboard.
+   NOTE: this client-side check is for UX only — the real protection is
+   the Firestore Security Rule (see SETUP_GUIDE.md) which also checks this list. */
+const ADMIN_EMAILS = ["syeda.zeenat@kamelpay.com", "ramesh.kumar@kamelpay.com"];
+
+const actionCodeSettings = {
+  url: window.location.href.split('?')[0],
+  handleCodeInApp: true
+};
+
+document.getElementById('loginBtn').onclick = function(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const err = document.getElementById('loginErr');
+  err.style.display='none';
+  if(!ADMIN_EMAILS.includes(email)){
+    err.textContent = 'This email is not authorised for the admin dashboard.';
+    err.style.display='block';
+    return;
+  }
+  auth.sendSignInLinkToEmail(email, actionCodeSettings).then(function(){
+    window.localStorage.setItem('kp_admin_email', email);
+    document.getElementById('requestStep').style.display='none';
+    document.getElementById('sentStep').style.display='block';
+  }).catch(function(e){
+    err.textContent = 'Could not send link: ' + e.message;
+    err.style.display='block';
+  });
+};
+document.getElementById('logoutBtn').onclick = function(){ auth.signOut(); };
+
+/* Handle arriving back via the emailed link */
+if(auth.isSignInWithEmailLink(window.location.href)){
+  let email = window.localStorage.getItem('kp_admin_email');
+  if(!email){
+    email = window.prompt('Confirm your email to complete sign-in:');
+  }
+  if(email){
+    auth.signInWithEmailLink(email, window.location.href).then(function(){
+      window.localStorage.removeItem('kp_admin_email');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }).catch(function(e){
+      document.getElementById('loginErr').textContent = 'Sign-in link invalid or expired: ' + e.message;
+      document.getElementById('loginErr').style.display='block';
+    });
+  }
+}
+
+auth.onAuthStateChanged(function(user){
+  if(user && ADMIN_EMAILS.includes(user.email)){
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('dash').classList.add('ready');
+    loadData();
+  } else if(user){
+    /* signed in with Firebase but not on the allowlist */
+    document.getElementById('dash').classList.remove('ready');
+    document.getElementById('loginWrap').style.display='flex';
+    document.querySelector('.login-card').innerHTML =
+      '<div class="access-denied"><h2>Access denied</h2><p class="small">'+ (user.email||'This account') +' is not authorised to view this dashboard.</p></div>';
+    auth.signOut();
+  } else {
+    document.getElementById('loginWrap').style.display='flex';
+    document.getElementById('dash').classList.remove('ready');
+  }
+});
+
+function loadData(){
+  db.collection('attempts').orderBy('timestamp','desc').get().then(function(snap){
+    allAttempts = [];
+    snap.forEach(function(doc){
+      const d = doc.data();
+      allAttempts.push({
+        name: d.name||'(no name)',
+        email: d.email||'(no email)',
+        score: d.score, total: d.total, pct: d.percentage,
+        passed: !!d.passed,
+        ts: d.timestamp ? d.timestamp.toDate() : null
+      });
+    });
+    buildSummary();
+    renderRaw();
+    renderSummary();
+    renderStats();
+  }).catch(function(e){
+    document.getElementById('emptyState').style.display='block';
+    document.getElementById('emptyState').textContent = 'Could not load data: ' + e.message;
+  });
+}
+
+function buildSummary(){
+  const byEmail = {};
+  allAttempts.forEach(function(a){
+    const key = a.email;
+    if(!byEmail[key]) byEmail[key] = {name:a.name, email:a.email, attempts:0, best:0, passed:false, last:null};
+    const row = byEmail[key];
+    row.attempts++;
+    if(a.pct > row.best) row.best = a.pct;
+    if(a.passed) row.passed = true;
+    if(!row.last || (a.ts && a.ts > row.last)) row.last = a.ts;
+    if(a.name && a.name!=='(no name)') row.name = a.name;
+  });
+  summaryRows = Object.values(byEmail);
+}
+
+function renderStats(){
+  document.getElementById('statUsers').textContent = summaryRows.length;
+  document.getElementById('statPassed').textContent = summaryRows.filter(r=>r.passed).length;
+  document.getElementById('statAttempts').textContent = allAttempts.length;
+  const rate = summaryRows.length ? Math.round(summaryRows.filter(r=>r.passed).length/summaryRows.length*100) : 0;
+  document.getElementById('statRate').textContent = rate + '%';
+}
+
+function fmtDate(d){ return d ? d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '–'; }
+
+function sortBy(key){
+  sortState.dir = (sortState.key===key) ? -sortState.dir : 1;
+  sortState.key = key;
+  renderSummary();
+}
+
+function renderSummary(){
+  const q = (document.getElementById('searchBox').value||'').toLowerCase();
+  let rows = summaryRows.filter(r=> r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q));
+  rows.sort(function(a,b){
+    let av=a[sortState.key], bv=b[sortState.key];
+    if(sortState.key==='status'){ av=a.passed?1:0; bv=b.passed?1:0; }
+    if(sortState.key==='last'){ av=a.last?a.last.getTime():0; bv=b.last?b.last.getTime():0; }
+    if(typeof av==='string') return av.localeCompare(bv)*sortState.dir;
+    return (av-bv)*sortState.dir;
+  });
+  const body = document.getElementById('summaryBody');
+  body.innerHTML = rows.map(function(r){
+    return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td>'+r.attempts+'</td><td>'+r.best+'%</td>'+
+      '<td><span class="badge '+(r.passed?'badge-pass':'badge-fail')+'">'+(r.passed?'Passed':'Not yet')+'</span></td>'+
+      '<td>'+fmtDate(r.last)+'</td></tr>';
+  }).join('');
+  document.getElementById('emptyState').style.display = rows.length ? 'none' : 'block';
+}
+
+function renderRaw(){
+  const body = document.getElementById('rawBody');
+  body.innerHTML = allAttempts.map(function(a){
+    return '<tr><td>'+esc(a.name)+'</td><td>'+esc(a.email)+'</td><td>'+a.score+'/'+a.total+' ('+a.pct+'%)</td>'+
+      '<td><span class="badge '+(a.passed?'badge-pass':'badge-fail')+'">'+(a.passed?'Pass':'Fail')+'</span></td>'+
+      '<td>'+fmtDate(a.ts)+'</td></tr>';
+  }).join('');
+}
+
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+document.getElementById('searchBox').addEventListener('input', renderSummary);
+</script>
+</body>
+</html>
