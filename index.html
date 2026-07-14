@@ -341,7 +341,7 @@ tr:nth-child(even) td{background:#f8fafc}
         <input id="gateEmail" placeholder="e.g. name@kamelpay.com" type="email">
       </div>
       
-      <div class="gate-err" id="gateErr">Please enter both your name and a valid email.</div>
+      <div class="gate-err" id="gateErr">Please enter your name and a valid KamelPay work email (must end in @kamelpay.com).</div>
       <button class="btn btn-primary" style="margin-top:24px;width:100%;font-size:1rem;padding:12px 18px" id="gateSubmit">Start training →</button>
       
       <p class="gate-footer-note">Your progress and quiz results will be recorded. Completion certificates are available upon passing the final quiz with a score of 80% or above.</p>
@@ -390,6 +390,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+document.getElementById('gateLogoImg').src = KAMELPAY_LOGO;
+
 /* ========== IDENTITY GATE ========== */
 let learner = JSON.parse(localStorage.getItem('kp_learner')||'null');
 
@@ -412,7 +414,7 @@ function switchUser(){
   window.location.reload();
 }
 
-function validEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function validEmail(e){ return /^[^\s@]+@kamelpay\.com$/i.test(e); }
 
 if(learner && learner.name && learner.email){
   showApp();
@@ -1313,6 +1315,9 @@ function gradeQuiz(){
     </div>`;
     document.getElementById('certDate').textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   }
+  res.innerHTML += `<div style="text-align:center;margin-top:24px">
+    <button class="btn btn-ghost" onclick="switchUser()">Close / Sign out</button>
+  </div>`;
   res.scrollIntoView({behavior:'smooth'});
 }
 function retakeQuiz(){ qAnswers=Array(quiz.length).fill(null); buildQuiz(); window.scrollTo(0,0); }
