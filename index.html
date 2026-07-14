@@ -223,12 +223,54 @@ tr:nth-child(even) td{background:#f8fafc}
   .rules,.flow,.compare,.stats-strip{flex-direction:column}
   .topbar{padding:12px 16px}
 }
-.gate-overlay{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
-.gate-card{background:#fff;border-radius:16px;padding:36px 32px;max-width:380px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.gate-overlay{position:fixed;inset:0;background:var(--navy);z-index:100;overflow:auto;display:flex}
+.gate-visual{flex:1.15;display:flex;flex-direction:column;justify-content:center;padding:64px 60px;color:#fff;position:relative;overflow:hidden;min-height:280px}
+.gate-visual::before{content:'';position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(201,163,77,.16),transparent 70%);top:-160px;right:-160px}
+.gate-visual-content{position:relative;z-index:1;max-width:420px}
+.gate-visual .brand-logo{font-size:1.3rem;font-weight:800;letter-spacing:-.3px;margin-bottom:24px;position:relative;z-index:1}
+.gate-visual .brand-logo span{color:#4d8fe0}
+.gate-visual h1{font-size:2.3rem;font-weight:800;line-height:1.2;margin-bottom:8px;position:relative;z-index:1}
+.gate-tagline{font-size:1rem;color:#c9a34d;font-weight:600;margin-bottom:16px;position:relative;z-index:1}
+.gate-desc{color:#c7d2e0;font-size:.95rem;max-width:420px;line-height:1.65;margin-bottom:32px;position:relative;z-index:1}
+.gate-features{display:flex;flex-direction:column;gap:14px;margin-bottom:32px;position:relative;z-index:1}
+.gate-feature{display:flex;gap:12px;align-items:flex-start}
+.gate-feature-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(201,163,77,.25);color:#c9a34d;font-weight:800;font-size:.9rem;flex-shrink:0;margin-top:2px}
+.gate-feature strong{display:block;color:#fff;font-size:.9rem;margin-bottom:2px}
+.gate-feature-sub{color:#a8b5c8;font-size:.8rem}
+.gate-illustration{width:100%;max-width:200px;margin-top:24px;position:relative;z-index:1;opacity:.9}
+.gate-form-panel{flex:1;background:#fff;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.gate-card{max-width:380px;width:100%}
+.gate-card .gate-logo{height:32px;margin-bottom:28px;display:block}
+.gate-card h2{color:var(--navy);font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.gate-subtitle{color:var(--muted);font-size:.9rem;margin-bottom:24px!important}
+.gate-card p{color:var(--muted);font-size:.85rem;margin-bottom:18px}
+.gate-form-group{margin-bottom:16px}
+.gate-form-group label{display:block;font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px}
+.gate-form-group input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:9px;font-size:.95rem;transition:all .2s}
+.gate-form-group input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,111,207,.1)}
+.gate-footer-note{font-size:.75rem;color:var(--muted);margin-top:20px;line-height:1.5;font-style:italic}
+.gate-err{color:var(--red);font-size:.8rem;margin-top:12px;display:none}
+@media(max-width:900px){
+  .gate-overlay{flex-direction:column}
+  .gate-visual{padding:48px 32px;flex:0.8}
+  .gate-visual h1{font-size:1.8rem}
+  .gate-illustration{max-width:160px}
+  .gate-features{gap:10px}
+}
+.gate-illustration{width:210px;height:210px;position:relative;z-index:1}
+.gate-form-panel{flex:1;background:#fff;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.gate-card{max-width:380px;width:100%}
+.gate-card .gate-logo{height:28px;margin-bottom:30px;display:block}
 .gate-card h2{color:var(--navy);font-size:1.15rem;margin-bottom:4px}
 .gate-card p{color:var(--muted);font-size:.85rem;margin-bottom:18px}
 .gate-card label{display:block;font-size:.78rem;font-weight:600;color:var(--navy);margin:12px 0 5px}
 .gate-card input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:.9rem}
+@media(max-width:860px){
+  .gate-overlay{flex-direction:column}
+  .gate-visual{padding:40px 28px 20px;flex:none}
+  .gate-illustration{width:140px;height:140px;margin:0 auto}
+  .gate-form-panel{padding:32px 20px 48px}
+}
 .gate-err{color:var(--red);font-size:.8rem;margin-top:8px;display:none}
 .app{display:none}
 .app.ready{display:flex}
@@ -238,15 +280,72 @@ tr:nth-child(even) td{background:#f8fafc}
 </head>
 <body>
 <div class="gate-overlay" id="gateOverlay">
-  <div class="gate-card">
-    <h2>Before you begin</h2>
-    <p>Enter your details so your progress and quiz result can be recorded.</p>
-    <label>Full name</label>
-    <input id="gateName" placeholder="e.g. Ramesh Kumar">
-    <label>Work email</label>
-    <input id="gateEmail" placeholder="e.g. name@kamelpay.com" type="email">
-    <div class="gate-err" id="gateErr">Please enter both your name and a valid email.</div>
-    <button class="btn btn-primary" style="margin-top:18px;width:100%" id="gateSubmit">Start training →</button>
+  <div class="gate-visual">
+    <div class="gate-visual-content">
+      <div class="brand-logo">Kamel<span>Pay</span></div>
+      <h1>Compliance Academy</h1>
+      <p class="gate-tagline">Master AML, CFT & Sanctions compliance in 20 minutes</p>
+      <p class="gate-desc">A practical, interactive course designed to ensure every KamelPay team member understands the regulations that protect our customers and business. Includes a final quiz — pass with 80% or above to earn your certificate.</p>
+      
+      <div class="gate-features">
+        <div class="gate-feature">
+          <span class="gate-feature-icon">✓</span>
+          <div>
+            <strong>Regulatory Compliance</strong>
+            <div class="gate-feature-sub">AML, CFT &amp; Sanctions regulations</div>
+          </div>
+        </div>
+        <div class="gate-feature">
+          <span class="gate-feature-icon">✓</span>
+          <div>
+            <strong>Interactive Quiz</strong>
+            <div class="gate-feature-sub">Test your knowledge, earn a certificate</div>
+          </div>
+        </div>
+        <div class="gate-feature">
+          <span class="gate-feature-icon">✓</span>
+          <div>
+            <strong>Tracked Progress</strong>
+            <div class="gate-feature-sub">Completion records available to compliance team</div>
+          </div>
+        </div>
+      </div>
+
+      <svg class="gate-illustration" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+        <path d="M120 18 L204 50 V118 C204 166 168 204 120 224 C72 204 36 166 36 118 V50 Z" fill="rgba(255,255,255,.06)" stroke="#c9a34d" stroke-width="3"/>
+        <path d="M120 40 L184 64 V118 C184 156 156 184 120 202 C84 184 56 156 56 118 V64 Z" fill="rgba(201,163,77,.14)"/>
+        <path d="M90 122 L112 144 L154 96" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <g transform="translate(148,148)">
+          <rect x="0" y="0" width="58" height="74" rx="6" fill="#0b1f3a" stroke="#c9a34d" stroke-width="2"/>
+          <line x1="11" y1="17" x2="47" y2="17" stroke="#c9a34d" stroke-width="3" stroke-linecap="round"/>
+          <line x1="11" y1="31" x2="47" y2="31" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="11" y1="45" x2="34" y2="45" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  
+  <div class="gate-form-panel">
+    <div class="gate-card">
+      <img class="gate-logo" id="gateLogoImg" alt="KamelPay">
+      <h2>Get started</h2>
+      <p class="gate-subtitle">Enter your details to begin your compliance journey</p>
+      
+      <div class="gate-form-group">
+        <label>Full name</label>
+        <input id="gateName" placeholder="e.g. Ramesh Kumar">
+      </div>
+      
+      <div class="gate-form-group">
+        <label>Work email</label>
+        <input id="gateEmail" placeholder="e.g. name@kamelpay.com" type="email">
+      </div>
+      
+      <div class="gate-err" id="gateErr">Please enter both your name and a valid email.</div>
+      <button class="btn btn-primary" style="margin-top:24px;width:100%;font-size:1rem;padding:12px 18px" id="gateSubmit">Start training →</button>
+      
+      <p class="gate-footer-note">Your progress and quiz results will be recorded. Completion certificates are available upon passing the final quiz with a score of 80% or above.</p>
+    </div>
   </div>
 </div>
 <div class="app" id="appRoot">
@@ -341,13 +440,15 @@ function markQuizStarted(){
   }, {merge:true}).catch(function(e){ console.error('Could not mark quiz started:', e); });
 }
 
-function submitAttemptToFirestore(attemptId, score, total, pct, passed){
-  db.collection('attempts').doc(attemptId).set({
+function submitAttemptToFirestore(attemptId, score, total, pct, passed, certId){
+  const record = {
     name: learner.name,
     email: learner.email,
     score, total, percentage: pct, passed,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(function(e){ console.error('Could not save attempt:', e); });
+  };
+  if(passed && certId) record.certId = certId;
+  db.collection('attempts').doc(attemptId).set(record).catch(function(e){ console.error('Could not save attempt:', e); });
 }
 
 /* ========== SVG ILLUSTRATIONS ========== */
@@ -1161,7 +1262,11 @@ function gradeQuiz(){
   quiz.forEach((item,qi)=>{ if(qAnswers[qi]===item.a) score++; });
   const pct=Math.round((score/quiz.length)*100);
   const passed=pct>=PASS;
-  submitAttemptToFirestore(currentAttemptId, score, quiz.length, pct, passed);
+  let certId = null;
+  if(passed){
+    certId = (learner&&learner.email?learner.email.split('@')[0]:'guest').toUpperCase().replace(/[^A-Z0-9]/g,'') + '-' + Date.now().toString(36).toUpperCase();
+  }
+  submitAttemptToFirestore(currentAttemptId, score, quiz.length, pct, passed, certId);
   document.querySelectorAll('#qqArea .quiz-q').forEach((div,qi)=>{
     div.querySelectorAll('.opt').forEach((o,oi)=>{
       o.style.pointerEvents='none';
@@ -1178,7 +1283,6 @@ function gradeQuiz(){
   </div>`;
   if(passed){
     visited.add(current); updateNav();
-    const certId = (learner&&learner.email?learner.email.split('@')[0]:'guest').toUpperCase().replace(/[^A-Z0-9]/g,'') + '-' + Date.now().toString(36).toUpperCase();
     res.innerHTML+=`<div class="cert">
       <div class="cert-inner">
         <div class="cert-corner-tr"></div>

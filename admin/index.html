@@ -104,7 +104,7 @@ tr:last-child td{border-bottom:none}
       <th onclick="sortBy('best')">Best score</th>
       <th onclick="sortBy('status')">Status</th>
       <th onclick="sortBy('last')">Last attempt</th>
-    </tr></thead>
+      <th style="text-align:center">Certificate</th>
     <tbody id="summaryBody"></tbody>
   </table>
   <div class="empty" id="emptyState" style="display:none">No attempts recorded yet.</div>
@@ -215,6 +215,7 @@ function loadData(){
         email: d.email||'(no email)',
         score: d.score, total: d.total, pct: d.percentage,
         passed: !!d.passed,
+        certId: d.certId||null,
         ts: d.timestamp ? d.timestamp.toDate() : null
       });
     });
@@ -241,11 +242,14 @@ function buildSummary(){
   const byEmail = {};
   allAttempts.forEach(function(a){
     const key = a.email;
-    if(!byEmail[key]) byEmail[key] = {name:a.name, email:a.email, attempts:0, best:0, passed:false, last:null, status:'finished'};
+    if(!byEmail[key]) byEmail[key] = {name:a.name, email:a.email, attempts:0, best:0, passed:false, last:null, certId:null, status:'finished'};
     const row = byEmail[key];
     row.attempts++;
     if(a.pct > row.best) row.best = a.pct;
-    if(a.passed) row.passed = true;
+    if(a.passed) { 
+      row.passed = true; 
+      if(a.certId) row.certId = a.certId;
+    }
     if(!row.last || (a.ts && a.ts > row.last)) row.last = a.ts;
     if(a.name && a.name!=='(no name)') row.name = a.name;
   });
@@ -253,7 +257,7 @@ function buildSummary(){
   allStarts.forEach(function(s){
     const key = s.email;
     if(!byEmail[key]){
-      byEmail[key] = {name:s.name, email:s.email, attempts:0, best:0, passed:false, last:s.lastStarted, status:'not_finished'};
+      byEmail[key] = {name:s.name, email:s.email, attempts:0, best:0, passed:false, last:s.lastStarted, certId:null, status:'not_finished'};
     }
   });
   summaryRows = Object.values(byEmail);
@@ -296,9 +300,13 @@ function renderSummary(){
       ? '<span class="badge badge-progress">Attempted, not finished</span>'
       : '<span class="badge '+(r.passed?'badge-pass':'badge-fail')+'">'+(r.passed?'Passed':'Not yet')+'</span>';
     const bestCell = r.status==='not_finished' ? '–' : r.best+'%';
+    const certCell = r.passed && r.certId 
+      ? '<a href="#" style="color:var(--blue);font-weight:600;text-decoration:underline;cursor:pointer" onclick="viewCert(\''+r.certId+'\');return false">View cert.</a>'
+      : '–';
     return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td>'+r.attempts+'</td><td>'+bestCell+'</td>'+
       '<td>'+statusBadge+'</td>'+
-      '<td>'+fmtDate(r.last)+'</td></tr>';
+      '<td>'+fmtDate(r.last)+'</td>'+
+      '<td style="text-align:center">'+certCell+'</td></tr>';
   }).join('');
   document.getElementById('emptyState').style.display = rows.length ? 'none' : 'block';
 }
@@ -313,6 +321,10 @@ function renderRaw(){
 }
 
 function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function viewCert(certId){
+  alert('Certificate ID: ' + certId + '\n\nTo view the full certificate, the user can access it from their training session by retaking the quiz and passing it again.');
+}
 
 document.getElementById('searchBox').addEventListener('input', renderSummary);
 </script>
