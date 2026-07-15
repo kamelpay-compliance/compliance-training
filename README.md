@@ -2,6 +2,16 @@
 
 Static web app for compliance training with a Firebase-backed admin dashboard.
 
+## Live URLs
+
+| Page | URL |
+|------|-----|
+| **Training** (share this with learners) | https://kp-compliance.vercel.app/ |
+| **Admin dashboard** | https://kp-compliance.vercel.app/admin/ |
+
+Hosted on **Vercel** — project `kp-compliance` (team `team-kp`), connected to this GitHub repo.
+Pushing to the `main` branch triggers a production deployment automatically.
+
 ## Files
 
 | File | Purpose |
